@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# content/ 是 dev 期間的 Markdown 鏡像；真相層在 Supabase Storage（design.md §2.8）
+/content
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

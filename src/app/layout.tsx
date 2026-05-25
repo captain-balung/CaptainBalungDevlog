@@ -1,9 +1,33 @@
 import type { Metadata } from "next";
+import { Noto_Serif_TC, Source_Serif_4, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+
+const notoSerifTC = Noto_Serif_TC({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-noto-serif-tc",
+  display: "swap",
+});
+
+const sourceSerif4 = Source_Serif_4({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-source-serif-4",
+  display: "swap",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
+  variable: "--font-ibm-plex-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "巴隆船長的航海日誌",
-  description: "Captain Balung's voyage log — a personal development journal.",
+  description: "一個個人開發日誌——做了什麼 / 卡在哪 / 待辦 / 雜想。",
 };
 
 export default function RootLayout({
@@ -11,9 +35,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const fontClasses = `${notoSerifTC.variable} ${sourceSerif4.variable} ${ibmPlexMono.variable}`;
   return (
-    <html lang="zh-Hant" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="zh-Hant" className={fontClasses}>
+      <body>{children}</body>
     </html>
   );
 }

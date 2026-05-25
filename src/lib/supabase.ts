@@ -22,6 +22,20 @@ export function getSupabase(): SupabaseClient {
   return createClient(url, anonKey);
 }
 
+let _adminClient: SupabaseClient | null = null;
+export function getSupabaseAdmin(): SupabaseClient {
+  if (_adminClient) return _adminClient;
+  if (!url || !serviceKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+    );
+  }
+  _adminClient = createClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  return _adminClient;
+}
+
 export type PingResult = {
   ok: boolean;
   status: number;
