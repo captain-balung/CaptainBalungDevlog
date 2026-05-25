@@ -23,27 +23,27 @@ export async function pingSupabase(): Promise<PingResult> {
     return {
       ok: false,
       status: 0,
-      message: "Missing env vars",
+      message: `missing env vars (url=${url ? "set" : "missing"}, key=${anonKey ? "set" : "missing"})`,
     };
   }
+  const base = url.trim().replace(/\/$/, "");
+  const target = `${base}/auth/v1/health`;
   try {
-    const response = await fetch(`${url}/rest/v1/`, {
-      headers: {
-        apikey: anonKey,
-        Authorization: `Bearer ${anonKey}`,
-      },
-      cache: "no-store",
-    });
-    return {
-      ok: response.ok,
-      status: response.status,
-      message: response.ok ? "connected" : `HTTP ${response.status}`,
-    };
-  } catch (err) {
+    const response = await fetch(target, { cache: "no-store" });
+    if (response.ok) {
+      return {
+        ok: true,
+        status: response.status,
+        message: `connected (${base})`,
+      };
+    }
     return {
       ok: false,
-      status: 0,
-      message: err instanceof Error ? err.message : "unknown error",
+      status: response.status,
+      message: `HTTP ${response.status} from ${target}`,
     };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "unknown error";
+    return { ok: false, status: 0, message: `${msg} (${target})` };
   }
 }
