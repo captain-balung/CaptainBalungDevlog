@@ -1,7 +1,16 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+function normalizeUrl(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  try {
+    return new URL(raw.trim()).origin;
+  } catch {
+    return undefined;
+  }
+}
+
+const url = normalizeUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
 export function getSupabase(): SupabaseClient {
   if (!url || !anonKey) {
@@ -26,15 +35,14 @@ export async function pingSupabase(): Promise<PingResult> {
       message: `missing env vars (url=${url ? "set" : "missing"}, key=${anonKey ? "set" : "missing"})`,
     };
   }
-  const base = url.trim().replace(/\/$/, "");
-  const target = `${base}/auth/v1/health`;
+  const target = `${url}/auth/v1/health`;
   try {
     const response = await fetch(target, { cache: "no-store" });
     if (response.ok) {
       return {
         ok: true,
         status: response.status,
-        message: `connected (${base})`,
+        message: `connected (${url})`,
       };
     }
     return {
