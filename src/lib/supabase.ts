@@ -11,6 +11,7 @@ function normalizeUrl(raw: string | undefined): string | undefined {
 
 const url = normalizeUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
 export function getSupabase(): SupabaseClient {
   if (!url || !anonKey) {
@@ -28,23 +29,23 @@ export type PingResult = {
 };
 
 export async function pingSupabase(): Promise<PingResult> {
-  if (!url || !anonKey) {
+  if (!url || !serviceKey) {
     return {
       ok: false,
       status: 0,
-      message: `missing env vars (url=${url ? "set" : "missing"}, key=${anonKey ? "set" : "missing"})`,
+      message: `missing env vars (url=${url ? "set" : "missing"}, service_key=${serviceKey ? "set" : "missing"})`,
     };
   }
   const target = `${url}/rest/v1/`;
   try {
     const response = await fetch(target, {
       headers: {
-        apikey: anonKey,
-        Authorization: `Bearer ${anonKey}`,
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
       },
       cache: "no-store",
     });
-    const keyHint = `${anonKey.slice(0, 12)}…(${anonKey.length} chars)`;
+    const keyHint = `${serviceKey.slice(0, 12)}…(${serviceKey.length} chars)`;
     if (response.ok) {
       return {
         ok: true,
