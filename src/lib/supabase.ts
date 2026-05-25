@@ -35,9 +35,15 @@ export async function pingSupabase(): Promise<PingResult> {
       message: `missing env vars (url=${url ? "set" : "missing"}, key=${anonKey ? "set" : "missing"})`,
     };
   }
-  const target = `${url}/auth/v1/health`;
+  const target = `${url}/rest/v1/`;
   try {
-    const response = await fetch(target, { cache: "no-store" });
+    const response = await fetch(target, {
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+      },
+      cache: "no-store",
+    });
     if (response.ok) {
       return {
         ok: true,
