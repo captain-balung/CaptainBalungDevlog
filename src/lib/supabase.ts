@@ -44,17 +44,24 @@ export async function pingSupabase(): Promise<PingResult> {
       },
       cache: "no-store",
     });
+    const keyHint = `${anonKey.slice(0, 12)}…(${anonKey.length} chars)`;
     if (response.ok) {
       return {
         ok: true,
         status: response.status,
-        message: `connected (${url})`,
+        message: `connected (${url}, key=${keyHint})`,
       };
+    }
+    let body = "";
+    try {
+      body = (await response.text()).slice(0, 200);
+    } catch {
+      // ignore
     }
     return {
       ok: false,
       status: response.status,
-      message: `HTTP ${response.status} from ${target}`,
+      message: `HTTP ${response.status} from ${target} | key=${keyHint} | body=${body}`,
     };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown error";
