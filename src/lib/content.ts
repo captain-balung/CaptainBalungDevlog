@@ -1,10 +1,10 @@
 // Markdown 真相層同步。
 // 階段 1 開始：production 不寫 fs（Vercel runtime fs 唯讀），只走 Supabase Storage（見 lib/storage.ts）。
 // 本機 dev 兩邊都寫：Storage（真相層）+ fs（方便手動翻檔案）。
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { toShortId } from "@/lib/format";
-import { uploadMarkdown } from "@/lib/storage";
+import { deleteMarkdown, uploadMarkdown } from "@/lib/storage";
 
 const CONTENT_ROOT = join(process.cwd(), "content", "projects");
 
@@ -69,6 +69,10 @@ export function entryKey(slug: string, ts: string): string {
   return `projects/${slug}/entries/${entryFilename(ts)}`;
 }
 
+export function docKey(slug: string, filename: string): string {
+  return `projects/${slug}/docs/${filename}`;
+}
+
 export async function writeProjectFile(project: ProjectRecord): Promise<void> {
   const md = projectMarkdown(project);
   // 真相層：Supabase Storage（production + dev 都寫）
@@ -88,5 +92,30 @@ export async function writeEntryFile(projectSlug: string, entry: EntryRecord): P
     const dir = join(CONTENT_ROOT, projectSlug, "entries");
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, entryFilename(entry.ts)), md, "utf8");
+  }
+}
+
+export async function writeDocFile(
+  projectSlug: string,
+  filename: string,
+  markdown: string,
+): Promise<void> {
+  await uploadMarkdown(docKey(projectSlug, filename), markdown);
+  if (shouldUseFs()) {
+    const dir = join(CONTENT_ROOT, projectSlug, "docs");
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, filename), markdown, "utf8");
+  }
+}
+
+export async function deleteDocFile(projectSlug: string, filename: string): Promise<void> {
+  try {
+    await deleteMarkdown(docKey(projectSlug, filename));
+  } catch {
+    // 真相層刪失敗不阻斷流程：DB 已經刪了
+  }
+  if (shouldUseFs()) {
+    const path = join(CONTENT_ROOT, projectSlug, "docs", filename);
+    await rm(path, { force: true });
   }
 }

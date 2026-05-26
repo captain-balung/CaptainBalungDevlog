@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { ProjectForm } from "@/components/ProjectForm";
+import { ProjectDocs } from "@/components/ProjectDocs";
 import { updateProjectAction } from "../../../_actions/projects";
 import type { Status } from "@/components/ProjectStatus";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "編輯專案 · 後台" };
 
 type PageParams = Promise<{ slug: string }>;
-type SearchParams = Promise<{ error?: string; msg?: string }>;
+type SearchParams = Promise<{ error?: string; msg?: string; docError?: string }>;
 
 export default async function EditProjectPage({
   params,
@@ -18,7 +19,7 @@ export default async function EditProjectPage({
   searchParams: SearchParams;
 }) {
   const { slug } = await params;
-  const { error, msg } = await searchParams;
+  const { error, msg, docError } = await searchParams;
 
   const supabase = getSupabaseAdmin();
   const { data } = await supabase
@@ -42,6 +43,7 @@ export default async function EditProjectPage({
         initial={project}
         error={error ? { code: error, msg } : undefined}
       />
+      <ProjectDocs slug={slug} errorCode={docError} errorMsg={msg} />
     </>
   );
 }

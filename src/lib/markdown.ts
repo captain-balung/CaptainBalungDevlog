@@ -5,8 +5,8 @@ import { marked, type RendererObject, type Tokens } from "marked";
 
 const renderer: RendererObject = {
   listitem(item: Tokens.ListItem) {
-    // marked v10+: 子 tokens 透過 parser 渲染成 inline HTML
-    const inner = this.parser.parseInline(item.tokens);
+    // 用 parse（而非 parseInline）才能處理巢狀 list / paragraph 等 block token。
+    const inner = this.parser.parse(item.tokens);
     if (item.task) {
       return item.checked
         ? `<li class="todo-item done">${inner}</li>\n`

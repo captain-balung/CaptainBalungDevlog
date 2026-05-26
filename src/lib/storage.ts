@@ -34,3 +34,12 @@ export async function listMarkdownPaths(prefix: string): Promise<string[]> {
   if (error || !data) return [];
   return data.map((f) => `${prefix}/${f.name}`);
 }
+
+export async function deleteMarkdown(path: string): Promise<void> {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase.storage.from(BUCKET).remove([path]);
+  if (error) {
+    console.error(`[storage] delete failed for ${path}:`, error.message);
+    throw error;
+  }
+}

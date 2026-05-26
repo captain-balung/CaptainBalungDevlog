@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { renderMarkdown } from "@/lib/markdown";
+import { downloadMarkdown } from "@/lib/storage";
+import { docKey } from "@/lib/content";
 import {
   formatDate,
   formatTimestamp,
@@ -10,6 +12,7 @@ import {
 import { ProjectStatus, type Status } from "@/components/ProjectStatus";
 import { EntryCard } from "@/components/EntryCard";
 import { FieldHeading } from "@/components/FieldHeading";
+import { DocsSection, type DocItem } from "@/components/DocsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +36,12 @@ type EntryRow = {
   thoughts: string;
 };
 
+type DocRow = {
+  filename: string;
+  title: string;
+  sort_order: number;
+};
+
 export async function generateMetadata({ params }: { params: PageParams }) {
   const { slug } = await params;
   const supabase = getSupabaseAdmin();
@@ -44,7 +53,7 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
   const { slug } = await params;
   const supabase = getSupabaseAdmin();
 
-  const [projectRes, entriesRes] = await Promise.all([
+  const [projectRes, entriesRes, docsRes] = await Promise.all([
     supabase.from("projects").select("slug, name, started_at, intro, status").eq("slug", slug).maybeSingle(),
     supabase
       .from("entries")
@@ -52,12 +61,25 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
       .eq("project_slug", slug)
       .order("ts", { ascending: false })
       .limit(500),
+    supabase
+      .from("docs")
+      .select("filename, title, sort_order")
+      .eq("project_slug", slug)
+      .order("sort_order", { ascending: true })
+      .order("filename", { ascending: true }),
   ]);
 
   const project = projectRes.data as ProjectRow | null;
   if (!project) notFound();
 
   const entries = (entriesRes.data ?? []) as EntryRow[];
+  const docRows = (docsRes.data ?? []) as DocRow[];
+  const docs: DocItem[] = await Promise.all(
+    docRows.map(async (d) => {
+      const md = (await downloadMarkdown(docKey(slug, d.filename))) ?? "";
+      return { filename: d.filename, title: d.title, html: renderMarkdown(md) };
+    }),
+  );
 
   return (
     <div className="col-wide">
@@ -73,6 +95,8 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
           {project.intro || <span style={{ color: "var(--ink-mute)" }}>（尚未填寫簡介）</span>}
         </p>
       </div>
+
+      <DocsSection docs={docs} />
 
       <div className="col">
         {entries.length === 0 ? (
