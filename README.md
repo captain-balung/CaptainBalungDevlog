@@ -6,7 +6,7 @@
 - **規範文件**：`../01-ClaudeAI定義的規範文件/`（`constitution.md` / `spec.md` / `roadmap.md` / `design.md`）
 - **設計 handoff**：`../02-ClaudeDesign製作的 UI 版本 A/`
 - **技術棧**：Next.js 16 (App Router, Server Actions, proxy.ts) · React 19 · TypeScript · Tailwind v4 · Supabase (Postgres + Storage) · Vercel
-- **目前進度**：階段 1 MVP（自動化完成，等實際使用驗證）
+- **目前進度**：階段 1 MVP 自動化全部完成（含 2026-05-26 補上的相關文件功能）；待寫滿 10 筆真實日誌做使用驗證
 
 ## 啟動
 
@@ -47,6 +47,9 @@ Vercel 那邊 Production + Preview + Development 三個 scope 都要勾。
 
 **雙層儲存（`design.md §2.8`）：**
 - 真相層：Markdown 檔，存在 Supabase Storage bucket `content/`
+  - `projects/<slug>/project.md`：專案 frontmatter + 簡介
+  - `projects/<slug>/entries/<YYYY-MM-DD-HHMMSS>.md`：日誌
+  - `projects/<slug>/docs/<filename>.md`：相關文件（後台上傳）
 - 查詢層：Postgres，`projects` / `entries` / `docs` 三張表（schema 見 `supabase/migrations/0001_init.sql`）
 
 每次後台寫入會同時寫入 DB + Storage。本機 dev 多寫一份到 `content/`（gitignored）方便手動翻檔。
