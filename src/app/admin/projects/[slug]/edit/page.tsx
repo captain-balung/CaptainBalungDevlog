@@ -10,7 +10,12 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "編輯專案 · 後台" };
 
 type PageParams = Promise<{ slug: string }>;
-type SearchParams = Promise<{ error?: string; msg?: string; docError?: string }>;
+type SearchParams = Promise<{
+  error?: string;
+  msg?: string;
+  docError?: string;
+  docKind?: string;
+}>;
 
 export default async function EditProjectPage({
   params,
@@ -20,7 +25,9 @@ export default async function EditProjectPage({
   searchParams: SearchParams;
 }) {
   const { slug } = await params;
-  const { error, msg, docError } = await searchParams;
+  const { error, msg, docError, docKind } = await searchParams;
+  const initialDocError = docKind === "initial" ? docError : undefined;
+  const latestDocError = docKind === "latest" ? docError : undefined;
 
   const supabase = getSupabaseAdmin();
   const [projectRes, outputsRes] = await Promise.all([
@@ -69,7 +76,20 @@ export default async function EditProjectPage({
         }}
         error={error ? { code: error, msg } : undefined}
       />
-      <ProjectDocs slug={slug} errorCode={docError} errorMsg={msg} />
+      <ProjectDocs
+        slug={slug}
+        kind="initial"
+        title="初始文件"
+        errorCode={initialDocError}
+        errorMsg={initialDocError ? msg : undefined}
+      />
+      <ProjectDocs
+        slug={slug}
+        kind="latest"
+        title="最新文件"
+        errorCode={latestDocError}
+        errorMsg={latestDocError ? msg : undefined}
+      />
     </>
   );
 }

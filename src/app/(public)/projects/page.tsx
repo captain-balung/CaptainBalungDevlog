@@ -8,6 +8,7 @@ import {
   outputDisplayLabel,
   type OutputType,
 } from "@/lib/outputs";
+import { toolLabel } from "@/lib/tools";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "專案 · 巴隆船長的航海日誌" };
@@ -20,6 +21,8 @@ type ProjectRow = {
   started_at: string;
   intro: string;
   status: Status;
+  planning_tool: string | null;
+  execution_tool: string | null;
 };
 
 type EntrySummary = { project_slug: string; ts: string };
@@ -44,7 +47,7 @@ export default async function ProjectsList({ searchParams }: { searchParams: Sea
 
   const supabase = getSupabaseAdmin();
   const [projectsRes, entriesRes, outputsRes] = await Promise.all([
-    supabase.from("projects").select("slug, name, started_at, intro, status"),
+    supabase.from("projects").select("slug, name, started_at, intro, status, planning_tool, execution_tool"),
     supabase.from("entries").select("project_slug, ts"),
     supabase
       .from("project_outputs")
@@ -123,6 +126,21 @@ export default async function ProjectsList({ searchParams }: { searchParams: Sea
               </div>
               <ProjectStatus status={p.status} />
               <p className="intro">{p.intro || <span style={{ color: "var(--ink-mute)" }}>（尚未填寫簡介）</span>}</p>
+              {p.planning_tool || p.execution_tool ? (
+                <p className="proj-tools-line">
+                  {p.planning_tool ? (
+                    <span>
+                      <span className="phase">規劃</span> {toolLabel(p.planning_tool)}
+                    </span>
+                  ) : null}
+                  {p.planning_tool && p.execution_tool ? <span className="sep">·</span> : null}
+                  {p.execution_tool ? (
+                    <span>
+                      <span className="phase">執行</span> {toolLabel(p.execution_tool)}
+                    </span>
+                  ) : null}
+                </p>
+              ) : null}
               {projOutputs.length > 0 ? (
                 <div className="outputs-row">
                   {projOutputs.map((o, idx) => (

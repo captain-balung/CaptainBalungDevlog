@@ -4,6 +4,7 @@ import {
   updateDocMetaAction,
   uploadDocAction,
 } from "@/app/admin/_actions/docs";
+import type { DocKind } from "@/lib/content";
 
 type DocRow = {
   filename: string;
@@ -26,10 +27,14 @@ function docErrorMessage(code: string | undefined, msg: string | undefined): str
 
 export async function ProjectDocs({
   slug,
+  kind,
+  title,
   errorCode,
   errorMsg,
 }: {
   slug: string;
+  kind: DocKind;
+  title: string;
   errorCode?: string;
   errorMsg?: string;
 }) {
@@ -38,16 +43,21 @@ export async function ProjectDocs({
     .from("docs")
     .select("filename, title, sort_order")
     .eq("project_slug", slug)
+    .eq("kind", kind)
     .order("sort_order", { ascending: true })
     .order("filename", { ascending: true });
   const docs = (data ?? []) as DocRow[];
 
   const err = docErrorMessage(errorCode, errorMsg);
-  const boundUpload = uploadDocAction.bind(null, slug);
+  const boundUpload = uploadDocAction.bind(null, slug, kind);
+  const sectionId = kind === "latest" ? "latest-docs" : "initial-docs";
+  const emptyMsg = kind === "latest"
+    ? "還沒有最新文件——通常在專案完成或里程碑時上傳。"
+    : "這個專案還沒有初始文件。";
 
   return (
-    <section id="docs" className="admin-docs">
-      <h2 className="admin-h2">相關文件</h2>
+    <section id={sectionId} className="admin-docs">
+      <h2 className="admin-h2">{title}</h2>
 
       {err ? (
         <p
@@ -64,13 +74,13 @@ export async function ProjectDocs({
 
       {docs.length === 0 ? (
         <p style={{ color: "var(--ink-mute)", marginBottom: "1.5rem" }}>
-          這個專案還沒有相關文件。
+          {emptyMsg}
         </p>
       ) : (
         <ul className="admin-docs-list">
           {docs.map((d) => {
-            const boundUpdate = updateDocMetaAction.bind(null, slug, d.filename);
-            const boundDelete = deleteDocAction.bind(null, slug, d.filename);
+            const boundUpdate = updateDocMetaAction.bind(null, slug, kind, d.filename);
+            const boundDelete = deleteDocAction.bind(null, slug, kind, d.filename);
             return (
               <li key={d.filename}>
                 <form action={boundUpdate} className="admin-doc-row">
@@ -109,25 +119,31 @@ export async function ProjectDocs({
 
       <form action={boundUpload} className="admin-form admin-doc-upload">
         <div className="row">
-          <label htmlFor="doc-file">上傳 Markdown 檔</label>
-          <input id="doc-file" name="file" type="file" accept=".md,text/markdown" required />
+          <label htmlFor={`${sectionId}-file`}>上傳 Markdown 檔</label>
+          <input
+            id={`${sectionId}-file`}
+            name="file"
+            type="file"
+            accept=".md,text/markdown"
+            required
+          />
           <p className="help">
             檔名規則：lowercase 英數、底線、點、hyphen，須以 .md 結尾。同名會覆蓋。
           </p>
         </div>
         <div className="row">
-          <label htmlFor="doc-title">標題（選填）</label>
+          <label htmlFor={`${sectionId}-title`}>標題（選填）</label>
           <input
-            id="doc-title"
+            id={`${sectionId}-title`}
             name="title"
             type="text"
             placeholder="留空則用檔名（去掉 .md）"
           />
         </div>
         <div className="row">
-          <label htmlFor="doc-sort">排序（選填）</label>
+          <label htmlFor={`${sectionId}-sort`}>排序（選填）</label>
           <input
-            id="doc-sort"
+            id={`${sectionId}-sort`}
             name="sort_order"
             type="number"
             step={1}

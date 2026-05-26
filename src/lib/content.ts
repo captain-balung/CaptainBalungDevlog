@@ -80,8 +80,13 @@ export function entryKey(slug: string, ts: string): string {
   return `projects/${slug}/entries/${entryFilename(ts)}`;
 }
 
-export function docKey(slug: string, filename: string): string {
-  return `projects/${slug}/docs/${filename}`;
+export type DocKind = "initial" | "latest";
+
+// initial → projects/<slug>/docs/<filename>（既有路徑，不動）
+// latest  → projects/<slug>/latest/<filename>
+export function docKey(slug: string, kind: DocKind, filename: string): string {
+  const sub = kind === "latest" ? "latest" : "docs";
+  return `projects/${slug}/${sub}/${filename}`;
 }
 
 export async function writeProjectFile(project: ProjectRecord): Promise<void> {
@@ -108,25 +113,32 @@ export async function writeEntryFile(projectSlug: string, entry: EntryRecord): P
 
 export async function writeDocFile(
   projectSlug: string,
+  kind: DocKind,
   filename: string,
   markdown: string,
 ): Promise<void> {
-  await uploadMarkdown(docKey(projectSlug, filename), markdown);
+  await uploadMarkdown(docKey(projectSlug, kind, filename), markdown);
   if (shouldUseFs()) {
-    const dir = join(CONTENT_ROOT, projectSlug, "docs");
+    const sub = kind === "latest" ? "latest" : "docs";
+    const dir = join(CONTENT_ROOT, projectSlug, sub);
     await mkdir(dir, { recursive: true });
     await writeFile(join(dir, filename), markdown, "utf8");
   }
 }
 
-export async function deleteDocFile(projectSlug: string, filename: string): Promise<void> {
+export async function deleteDocFile(
+  projectSlug: string,
+  kind: DocKind,
+  filename: string,
+): Promise<void> {
   try {
-    await deleteMarkdown(docKey(projectSlug, filename));
+    await deleteMarkdown(docKey(projectSlug, kind, filename));
   } catch {
     // 真相層刪失敗不阻斷流程：DB 已經刪了
   }
   if (shouldUseFs()) {
-    const path = join(CONTENT_ROOT, projectSlug, "docs", filename);
+    const sub = kind === "latest" ? "latest" : "docs";
+    const path = join(CONTENT_ROOT, projectSlug, sub, filename);
     await rm(path, { force: true });
   }
 }

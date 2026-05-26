@@ -57,6 +57,7 @@ type DocRow = {
   filename: string;
   title: string;
   sort_order: number;
+  kind: "initial" | "latest";
 };
 
 function ToolChip({ slug }: { slug: string }) {
@@ -189,7 +190,7 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
       .limit(500),
     supabase
       .from("docs")
-      .select("filename, title, sort_order")
+      .select("filename, title, sort_order, kind")
       .eq("project_slug", slug)
       .order("sort_order", { ascending: true })
       .order("filename", { ascending: true }),
@@ -206,12 +207,19 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
   const entries = (entriesRes.data ?? []) as EntryRow[];
   const docRows = (docsRes.data ?? []) as DocRow[];
   const outputs = (outputsRes.data ?? []) as OutputRow[];
-  const docs: DocItem[] = await Promise.all(
-    docRows.map(async (d) => {
-      const md = (await downloadMarkdown(docKey(slug, d.filename))) ?? "";
-      return { filename: d.filename, title: d.title, html: renderMarkdown(md) };
-    }),
-  );
+
+  async function loadDocs(rows: DocRow[]): Promise<DocItem[]> {
+    return Promise.all(
+      rows.map(async (d) => {
+        const md = (await downloadMarkdown(docKey(slug, d.kind, d.filename))) ?? "";
+        return { filename: d.filename, title: d.title, html: renderMarkdown(md) };
+      }),
+    );
+  }
+  const [initialDocs, latestDocs] = await Promise.all([
+    loadDocs(docRows.filter((d) => d.kind === "initial")),
+    loadDocs(docRows.filter((d) => d.kind === "latest")),
+  ]);
 
   return (
     <div className="col-wide">
@@ -234,7 +242,8 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
         outputs={outputs}
       />
 
-      <DocsSection docs={docs} />
+      <DocsSection docs={initialDocs} label="初始文件" />
+      <DocsSection docs={latestDocs} label="最新文件" />
 
       <div className="col">
         {entries.length === 0 ? (

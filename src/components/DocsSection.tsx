@@ -8,7 +8,13 @@ export type DocItem = {
   html: string;
 };
 
-export function DocsSection({ docs }: { docs: DocItem[] }) {
+export function DocsSection({
+  docs,
+  label = "相關文件",
+}: {
+  docs: DocItem[];
+  label?: string;
+}) {
   const [openFilename, setOpenFilename] = useState<string | null>(null);
   if (docs.length === 0) return null;
 
@@ -16,7 +22,7 @@ export function DocsSection({ docs }: { docs: DocItem[] }) {
 
   return (
     <section className="docs-section">
-      <p className="docs-label">相關文件</p>
+      <p className="docs-label">{label}</p>
       <div className="docs-grid">
         {docs.map((d) => (
           <button

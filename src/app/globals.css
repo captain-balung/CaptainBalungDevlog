@@ -958,6 +958,25 @@ button {
   text-transform: uppercase;
 }
 
+/* Public: project list card — tools line (small, muted) */
+.proj-row .proj-tools-line {
+  grid-column: 1 / -1;
+  margin: 0.4rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-mute);
+  align-items: baseline;
+}
+.proj-row .proj-tools-line .phase {
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-right: 0.1rem;
+}
+.proj-row .proj-tools-line .sep { color: var(--ink-faint); }
+
 /* Public: project list card — output chips (inline, compact) */
 .proj-row .outputs-row {
   grid-column: 1 / -1;
