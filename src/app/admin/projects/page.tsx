@@ -68,7 +68,7 @@ export default async function AdminProjectsList() {
               </span>
               <span className="actions">
                 <Link href={`/projects/${p.slug}`} target="_blank">預覽</Link>
-
+                <span className="sep" aria-hidden="true">·</span>
                 <Link href={`/admin/projects/${p.slug}/edit`}>編輯</Link>
               </span>
             </li>

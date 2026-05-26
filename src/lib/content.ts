@@ -14,6 +14,9 @@ export type ProjectRecord = {
   started_at: string; // YYYY-MM-DD
   status: "進行中" | "完成" | "暫停";
   intro: string;
+  planning_tool: string | null;
+  execution_tool: string | null;
+  outputs: { type: "website" | "slides" | "video"; url: string; label: string }[];
 };
 
 export type EntryRecord = {
@@ -33,17 +36,25 @@ function escapeYamlString(s: string): string {
 }
 
 export function projectMarkdown(project: ProjectRecord): string {
-  return [
+  const lines: string[] = [
     "---",
     `name: "${escapeYamlString(project.name)}"`,
     `slug: "${project.slug}"`,
     `started_at: "${project.started_at}"`,
     `status: "${project.status}"`,
-    "---",
-    "",
-    project.intro,
-    "",
-  ].join("\n");
+  ];
+  if (project.planning_tool) lines.push(`planning_tool: "${project.planning_tool}"`);
+  if (project.execution_tool) lines.push(`execution_tool: "${project.execution_tool}"`);
+  if (project.outputs.length > 0) {
+    lines.push("outputs:");
+    for (const o of project.outputs) {
+      lines.push(`  - type: "${o.type}"`);
+      lines.push(`    url: "${escapeYamlString(o.url)}"`);
+      lines.push(`    label: "${escapeYamlString(o.label)}"`);
+    }
+  }
+  lines.push("---", "", project.intro, "");
+  return lines.join("\n");
 }
 
 export function entryMarkdown(entry: EntryRecord): string {

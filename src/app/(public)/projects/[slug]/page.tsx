@@ -17,6 +17,8 @@ import { TOOL_CATEGORY_LABEL, toolCategoryOf, toolLabel } from "@/lib/tools";
 import {
   OUTPUT_TYPE_LABEL,
   outputDisplayLabel,
+  youtubeEmbedUrl,
+  youtubeVideoId,
   type OutputType,
 } from "@/lib/outputs";
 
@@ -105,20 +107,57 @@ function ProjectMetaSection({
       {hasOutputs ? (
         <div className="proj-meta-block">
           <p className="proj-meta-label">成果</p>
-          <div className="outputs-row">
-            {outputs.map((o, idx) => (
-              <a
-                key={`${o.type}-${idx}`}
-                href={o.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="output-chip"
-              >
-                <span className="kind">{OUTPUT_TYPE_LABEL[o.type]}</span>
-                <span>{outputDisplayLabel(o)}</span>
-              </a>
-            ))}
-          </div>
+          {(() => {
+            // YouTube 影片獨立嵌入；其餘（含非 YouTube 的 video）走 chip。
+            const embeds: { idx: number; output: OutputRow; ytId: string }[] = [];
+            const chips: { idx: number; output: OutputRow }[] = [];
+            for (let i = 0; i < outputs.length; i++) {
+              const o = outputs[i];
+              const ytId = o.type === "video" ? youtubeVideoId(o.url) : null;
+              if (ytId) embeds.push({ idx: i, output: o, ytId });
+              else chips.push({ idx: i, output: o });
+            }
+            return (
+              <>
+                {chips.length > 0 ? (
+                  <div className="outputs-row">
+                    {chips.map(({ idx, output: o }) => (
+                      <a
+                        key={`chip-${idx}`}
+                        href={o.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="output-chip"
+                      >
+                        <span className="kind">{OUTPUT_TYPE_LABEL[o.type]}</span>
+                        <span>{outputDisplayLabel(o)}</span>
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+                {embeds.map(({ idx, output: o, ytId }) => (
+                  <figure key={`embed-${idx}`} className="output-embed">
+                    <div className="embed-frame">
+                      <iframe
+                        src={youtubeEmbedUrl(ytId)}
+                        title={outputDisplayLabel(o)}
+                        loading="lazy"
+                        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                      />
+                    </div>
+                    <figcaption className="embed-cap">
+                      <span className="kind">{OUTPUT_TYPE_LABEL[o.type]}</span>
+                      <a href={o.url} target="_blank" rel="noopener noreferrer">
+                        {outputDisplayLabel(o)}
+                      </a>
+                    </figcaption>
+                  </figure>
+                ))}
+              </>
+            );
+          })()}
         </div>
       ) : null}
     </section>

@@ -59,7 +59,7 @@ export default async function AdminHome() {
                 </span>
                 <span className="actions">
                   <Link href={`/projects/${e.project_slug}/${e.short_id}`} target="_blank">預覽</Link>
-
+                  <span className="sep" aria-hidden="true">·</span>
                   <Link href={`/admin/entries/${e.id}/edit`}>編輯</Link>
                 </span>
               </li>
