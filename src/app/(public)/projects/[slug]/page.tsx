@@ -13,6 +13,12 @@ import { ProjectStatus, type Status } from "@/components/ProjectStatus";
 import { EntryCard } from "@/components/EntryCard";
 import { FieldHeading } from "@/components/FieldHeading";
 import { DocsSection, type DocItem } from "@/components/DocsSection";
+import { TOOL_CATEGORY_LABEL, toolCategoryOf, toolLabel } from "@/lib/tools";
+import {
+  OUTPUT_TYPE_LABEL,
+  outputDisplayLabel,
+  type OutputType,
+} from "@/lib/outputs";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +30,15 @@ type ProjectRow = {
   started_at: string;
   intro: string;
   status: Status;
+  planning_tool: string | null;
+  execution_tool: string | null;
+};
+
+type OutputRow = {
+  type: OutputType;
+  url: string;
+  label: string;
+  sort_order: number;
 };
 
 type EntryRow = {
@@ -42,6 +57,74 @@ type DocRow = {
   sort_order: number;
 };
 
+function ToolChip({ slug }: { slug: string }) {
+  const cat = toolCategoryOf(slug);
+  return (
+    <span className="tool-chip">
+      {cat ? <span className="cat">{TOOL_CATEGORY_LABEL[cat]}</span> : null}
+      {toolLabel(slug)}
+    </span>
+  );
+}
+
+function ProjectMetaSection({
+  planning,
+  execution,
+  outputs,
+}: {
+  planning: string | null;
+  execution: string | null;
+  outputs: OutputRow[];
+}) {
+  const hasTools = !!planning || !!execution;
+  const hasOutputs = outputs.length > 0;
+  if (!hasTools && !hasOutputs) return null;
+
+  return (
+    <section className="proj-meta-section">
+      {hasTools ? (
+        <div className="proj-meta-block">
+          <p className="proj-meta-label">使用工具</p>
+          <div className="tool-row">
+            {planning ? (
+              <span className="tool-phase">
+                <span className="tool-phase-label">規劃</span>
+                <ToolChip slug={planning} />
+              </span>
+            ) : null}
+            {execution ? (
+              <span className="tool-phase">
+                <span className="tool-phase-label">執行</span>
+                <ToolChip slug={execution} />
+              </span>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {hasOutputs ? (
+        <div className="proj-meta-block">
+          <p className="proj-meta-label">成果</p>
+          <div className="outputs-row">
+            {outputs.map((o, idx) => (
+              <a
+                key={`${o.type}-${idx}`}
+                href={o.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="output-chip"
+              >
+                <span className="kind">{OUTPUT_TYPE_LABEL[o.type]}</span>
+                <span>{outputDisplayLabel(o)}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export async function generateMetadata({ params }: { params: PageParams }) {
   const { slug } = await params;
   const supabase = getSupabaseAdmin();
@@ -53,8 +136,12 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
   const { slug } = await params;
   const supabase = getSupabaseAdmin();
 
-  const [projectRes, entriesRes, docsRes] = await Promise.all([
-    supabase.from("projects").select("slug, name, started_at, intro, status").eq("slug", slug).maybeSingle(),
+  const [projectRes, entriesRes, docsRes, outputsRes] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("slug, name, started_at, intro, status, planning_tool, execution_tool")
+      .eq("slug", slug)
+      .maybeSingle(),
     supabase
       .from("entries")
       .select("id, short_id, ts, did_what, stuck_on, todo, thoughts")
@@ -67,6 +154,11 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
       .eq("project_slug", slug)
       .order("sort_order", { ascending: true })
       .order("filename", { ascending: true }),
+    supabase
+      .from("project_outputs")
+      .select("type, url, label, sort_order")
+      .eq("project_slug", slug)
+      .order("sort_order", { ascending: true }),
   ]);
 
   const project = projectRes.data as ProjectRow | null;
@@ -74,6 +166,7 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
 
   const entries = (entriesRes.data ?? []) as EntryRow[];
   const docRows = (docsRes.data ?? []) as DocRow[];
+  const outputs = (outputsRes.data ?? []) as OutputRow[];
   const docs: DocItem[] = await Promise.all(
     docRows.map(async (d) => {
       const md = (await downloadMarkdown(docKey(slug, d.filename))) ?? "";
@@ -95,6 +188,12 @@ export default async function ProjectPage({ params }: { params: PageParams }) {
           {project.intro || <span style={{ color: "var(--ink-mute)" }}>（尚未填寫簡介）</span>}
         </p>
       </div>
+
+      <ProjectMetaSection
+        planning={project.planning_tool}
+        execution={project.execution_tool}
+        outputs={outputs}
+      />
 
       <DocsSection docs={docs} />
 

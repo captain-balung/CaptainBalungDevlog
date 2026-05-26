@@ -4,6 +4,7 @@ import { ProjectForm } from "@/components/ProjectForm";
 import { ProjectDocs } from "@/components/ProjectDocs";
 import { updateProjectAction } from "../../../_actions/projects";
 import type { Status } from "@/components/ProjectStatus";
+import type { OutputType, ProjectOutput } from "@/lib/outputs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "編輯專案 · 後台" };
@@ -22,14 +23,30 @@ export default async function EditProjectPage({
   const { error, msg, docError } = await searchParams;
 
   const supabase = getSupabaseAdmin();
-  const { data } = await supabase
-    .from("projects")
-    .select("slug, name, intro, status, started_at")
-    .eq("slug", slug)
-    .maybeSingle();
+  const [projectRes, outputsRes] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("slug, name, intro, status, started_at, planning_tool, execution_tool")
+      .eq("slug", slug)
+      .maybeSingle(),
+    supabase
+      .from("project_outputs")
+      .select("id, type, url, label, sort_order")
+      .eq("project_slug", slug)
+      .order("sort_order", { ascending: true }),
+  ]);
 
-  if (!data) notFound();
-  const project = data as { slug: string; name: string; intro: string; status: Status; started_at: string };
+  if (!projectRes.data) notFound();
+  const project = projectRes.data as {
+    slug: string;
+    name: string;
+    intro: string;
+    status: Status;
+    started_at: string;
+    planning_tool: string | null;
+    execution_tool: string | null;
+  };
+  const outputs = (outputsRes.data ?? []) as ProjectOutput[];
 
   const boundAction = updateProjectAction.bind(null, slug);
 
@@ -40,7 +57,16 @@ export default async function EditProjectPage({
         action={boundAction}
         submitLabel="儲存變更"
         lockSlug
-        initial={project}
+        initial={{
+          ...project,
+          outputs: outputs.map((o) => ({
+            id: o.id,
+            type: o.type as OutputType,
+            url: o.url,
+            label: o.label,
+            sort_order: o.sort_order,
+          })),
+        }}
         error={error ? { code: error, msg } : undefined}
       />
       <ProjectDocs slug={slug} errorCode={docError} errorMsg={msg} />

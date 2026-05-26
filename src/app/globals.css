@@ -835,6 +835,131 @@ button {
   .admin-doc-row { grid-template-columns: 1fr; }
 }
 
+/* Admin: outputs editor (project form) */
+.admin-outputs-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.admin-outputs-list li {
+  display: grid;
+  grid-template-columns: 6rem 1fr 12rem auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+.admin-outputs-list select,
+.admin-outputs-list input[type="url"],
+.admin-outputs-list input[type="text"] {
+  font-family: var(--serif-tc);
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--paper-edge);
+  padding: 0.45rem 0.6rem;
+  border-radius: 2px;
+  width: 100%;
+}
+.admin-outputs-list select { font-family: var(--mono); font-size: 0.85rem; }
+.admin-outputs-list input:focus,
+.admin-outputs-list select:focus { outline: none; border-color: var(--accent); }
+@media (max-width: 640px) {
+  .admin-outputs-list li { grid-template-columns: 1fr; }
+}
+
+/* Public: project page — tools & outputs section */
+.proj-meta-section {
+  margin: 2rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--paper-edge);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.proj-meta-block .proj-meta-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 0 0 0.6rem;
+}
+.tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.5rem;
+  font-size: 0.92rem;
+}
+.tool-row .tool-phase {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.tool-row .tool-phase-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.tool-chip {
+  font-family: var(--serif-tc);
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--accent-soft);
+  padding: 0.15rem 0.55rem;
+  border-radius: 3px;
+}
+.tool-chip .cat {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+  margin-right: 0.4rem;
+}
+.outputs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+.output-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--serif-tc);
+  font-size: 0.92rem;
+  color: var(--ink);
+  background: var(--paper-soft);
+  border: 1px solid var(--paper-edge);
+  padding: 0.35rem 0.7rem;
+  border-radius: 2px;
+  background-image: none;
+  padding-bottom: 0.35rem;
+}
+.output-chip:hover { color: var(--accent); border-color: var(--accent-line); }
+.output-chip .kind {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+/* Public: project list card — output chips (inline, compact) */
+.proj-row .outputs-row {
+  grid-column: 1 / -1;
+  margin-top: 0.4rem;
+  gap: 0.4rem 0.5rem;
+}
+.proj-row .output-chip {
+  font-size: 0.85rem;
+  padding: 0.15rem 0.55rem;
+  padding-bottom: 0.15rem;
+}
+
+
 /* Login page (uses admin-shell base) */
 .login-form {
   max-width: 22rem;

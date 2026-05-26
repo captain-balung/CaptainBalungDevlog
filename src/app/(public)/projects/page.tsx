@@ -3,6 +3,11 @@ import { getSupabaseAdmin } from "@/lib/supabase";
 import { formatDate } from "@/lib/format";
 import { ProjectStatus, type Status } from "@/components/ProjectStatus";
 import { FilterChips } from "@/components/FilterChips";
+import {
+  OUTPUT_TYPE_LABEL,
+  outputDisplayLabel,
+  type OutputType,
+} from "@/lib/outputs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "專案 · 巴隆船長的航海日誌" };
@@ -19,6 +24,14 @@ type ProjectRow = {
 
 type EntrySummary = { project_slug: string; ts: string };
 
+type OutputRow = {
+  project_slug: string;
+  type: OutputType;
+  url: string;
+  label: string;
+  sort_order: number;
+};
+
 const STATUS_PRIORITY: Record<Status, number> = {
   進行中: 0,
   暫停: 1,
@@ -30,13 +43,18 @@ export default async function ProjectsList({ searchParams }: { searchParams: Sea
   const statusFilter = (params.status as Status | "") ?? "";
 
   const supabase = getSupabaseAdmin();
-  const [projectsRes, entriesRes] = await Promise.all([
+  const [projectsRes, entriesRes, outputsRes] = await Promise.all([
     supabase.from("projects").select("slug, name, started_at, intro, status"),
     supabase.from("entries").select("project_slug, ts"),
+    supabase
+      .from("project_outputs")
+      .select("project_slug, type, url, label, sort_order")
+      .order("sort_order", { ascending: true }),
   ]);
 
   const allProjects = (projectsRes.data ?? []) as ProjectRow[];
   const entries = (entriesRes.data ?? []) as EntrySummary[];
+  const outputs = (outputsRes.data ?? []) as OutputRow[];
 
   const counts = new Map<string, number>();
   const lastTs = new Map<string, string>();
@@ -44,6 +62,13 @@ export default async function ProjectsList({ searchParams }: { searchParams: Sea
     counts.set(e.project_slug, (counts.get(e.project_slug) ?? 0) + 1);
     const prev = lastTs.get(e.project_slug);
     if (!prev || e.ts > prev) lastTs.set(e.project_slug, e.ts);
+  }
+
+  const outputsBySlug = new Map<string, OutputRow[]>();
+  for (const o of outputs) {
+    const arr = outputsBySlug.get(o.project_slug) ?? [];
+    arr.push(o);
+    outputsBySlug.set(o.project_slug, arr);
   }
 
   const filtered = statusFilter
@@ -88,6 +113,7 @@ export default async function ProjectsList({ searchParams }: { searchParams: Sea
         sorted.map((p) => {
           const last = lastTs.get(p.slug);
           const count = counts.get(p.slug) ?? 0;
+          const projOutputs = outputsBySlug.get(p.slug) ?? [];
           return (
             <div key={p.slug} className="proj-row">
               <div>
@@ -97,6 +123,22 @@ export default async function ProjectsList({ searchParams }: { searchParams: Sea
               </div>
               <ProjectStatus status={p.status} />
               <p className="intro">{p.intro || <span style={{ color: "var(--ink-mute)" }}>（尚未填寫簡介）</span>}</p>
+              {projOutputs.length > 0 ? (
+                <div className="outputs-row">
+                  {projOutputs.map((o, idx) => (
+                    <a
+                      key={`${o.type}-${idx}`}
+                      href={o.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="output-chip"
+                    >
+                      <span className="kind">{OUTPUT_TYPE_LABEL[o.type]}</span>
+                      <span>{outputDisplayLabel(o)}</span>
+                    </a>
+                  ))}
+                </div>
+              ) : null}
               <p className="meta" style={{ gridColumn: "1 / -1" }}>
                 自 {formatDate(p.started_at)} 起 · {count} 則日誌
                 {last ? ` · 最後一筆 ${formatDate(last)}` : ""}
