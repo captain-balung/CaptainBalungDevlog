@@ -91,7 +91,7 @@ export default async function ProjectsList({ searchParams }: { searchParams: Sea
           return (
             <div key={p.slug} className="proj-row">
               <div>
-                <Link href={`/projects/${p.slug}`} className="name" style={{ backgroundImage: "none", paddingBottom: 0 }}>
+                <Link href={`/projects/${p.slug}`} className="name">
                   {p.name}
                 </Link>
               </div>
