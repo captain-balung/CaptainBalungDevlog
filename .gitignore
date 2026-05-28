@@ -43,3 +43,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# supabase CLI 本地狀態（link 後產生，含 project-ref / 版本快取）
+/supabase/.temp/

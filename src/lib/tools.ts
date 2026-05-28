@@ -1,13 +1,14 @@
 // 專案工具枚舉：對齊 spec.md §2.1。
 // slug 格式 `category:tool`——保留大類資訊是因為 chatgpt-codex 同時屬於 agent 與 cli。
 
-export type ToolCategory = "chatbot" | "ide" | "agent" | "cli";
+export type ToolCategory = "chatbot" | "ide" | "agent" | "cli" | "media";
 
 export const TOOL_CATEGORY_LABEL: Record<ToolCategory, string> = {
   chatbot: "聊天機器人",
   ide: "IDE",
   agent: "Agent",
   cli: "CLI",
+  media: "生成式多媒體與創作",
 };
 
 type ToolDef = { slug: string; label: string };
@@ -30,6 +31,11 @@ export const TOOLS_BY_CATEGORY: Record<ToolCategory, ToolDef[]> = {
     { slug: "cli:claude-code", label: "Claude Code" },
     { slug: "cli:chatgpt-codex", label: "ChatGPT Codex" },
     { slug: "cli:gemini-cli", label: "Gemini CLI" },
+  ],
+  media: [
+    { slug: "media:suno", label: "Suno AI" },
+    { slug: "media:google-vids", label: "Google Vids" },
+    { slug: "media:google-flow", label: "Google Flow" },
   ],
 };
 
