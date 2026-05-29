@@ -836,10 +836,80 @@ button {
 }
 .admin-doc-row input:focus { outline: none; border-color: var(--accent); }
 .admin-doc-upload { margin-top: 1.5rem; }
-.admin-doc-upload input[type="file"] {
+.admin-form label.admin-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 2rem 1.5rem;
+  border: 1px dashed var(--paper-edge);
+  background: var(--paper-soft);
+  border-radius: 2px;
+  cursor: pointer;
+  text-align: center;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: 0;
+  transition: border-color 0.15s, background 0.15s;
+}
+.admin-form label.admin-dropzone:hover {
+  border-color: var(--accent-line);
+}
+.admin-form label.admin-dropzone.is-drag-over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.admin-form label.admin-dropzone:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.admin-dropzone-title {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.admin-dropzone-hint {
+  font-family: var(--serif-tc), var(--serif-latin);
+  font-size: 0.95rem;
+  color: var(--ink-mute);
+  text-transform: none;
+  letter-spacing: normal;
+}
+.admin-dropzone-hint code {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  padding: 0.05rem 0.35rem;
+  margin: 0 0.15rem;
+  background: var(--accent-soft);
+  border-radius: 2px;
+  color: var(--accent);
+  text-transform: none;
+}
+.admin-dropzone-picked {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-top: 0.25rem;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.admin-dropzone-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.admin-dropzone-error {
+  margin: 0.5rem 0 0;
   font-family: var(--mono);
   font-size: 0.82rem;
-  color: var(--ink-soft);
+  color: var(--status-pause);
 }
 @media (max-width: 640px) {
   .admin-docs-list li,

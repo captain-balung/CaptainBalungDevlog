@@ -4,6 +4,7 @@ import {
   updateDocMetaAction,
   uploadDocAction,
 } from "@/app/admin/_actions/docs";
+import { DocUploadForm } from "@/components/DocUploadForm";
 import type { DocKind } from "@/lib/content";
 
 type DocRow = {
@@ -117,43 +118,7 @@ export async function ProjectDocs({
         </ul>
       )}
 
-      <form action={boundUpload} className="admin-form admin-doc-upload">
-        <div className="row">
-          <label htmlFor={`${sectionId}-file`}>上傳 Markdown 檔</label>
-          <input
-            id={`${sectionId}-file`}
-            name="file"
-            type="file"
-            accept=".md,text/markdown"
-            required
-          />
-          <p className="help">
-            檔名規則：lowercase 英數、底線、點、hyphen，須以 .md 結尾。同名會覆蓋。
-          </p>
-        </div>
-        <div className="row">
-          <label htmlFor={`${sectionId}-title`}>標題（選填）</label>
-          <input
-            id={`${sectionId}-title`}
-            name="title"
-            type="text"
-            placeholder="留空則用檔名（去掉 .md）"
-          />
-        </div>
-        <div className="row">
-          <label htmlFor={`${sectionId}-sort`}>排序（選填）</label>
-          <input
-            id={`${sectionId}-sort`}
-            name="sort_order"
-            type="number"
-            step={1}
-            placeholder="留空則接在最後面"
-          />
-        </div>
-        <div className="admin-actions">
-          <button type="submit" className="btn-primary">上傳</button>
-        </div>
-      </form>
+      <DocUploadForm action={boundUpload} sectionId={sectionId} />
     </section>
   );
 }
